@@ -1,4 +1,5 @@
 # Crack annotation tool
+[English](README.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md)
 
 The presented crack annotation tool is designed to generate pixel-wise labeling of images of cracks in a semi-automatic manner. It also allows to draw bounding boxes around objects. Its main goal is to simplify the creation of a dataset to train deep learning algorithms for crack segmentation that is often done manually. The mathematical underpinning for the segmentation algorithm was developed by Remco Duits(https://www.win.tue.nl/~rduits/) and a group of mathematical image analysis at Eindhoven University of Technology.
 

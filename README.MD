@@ -1,147 +1,193 @@
-# Crack annotation tool
-[English](README.md) | [繁體中文](README.zh-TW.md) 
+# Crack Annotation Tool
+[English](README.MD) | [繁體中文](README.zh-TW.md)
 
-# Attention
-this is a branch, with optimizations made to the original code.
+> **Branch notice:** This is a fork of the original repository with the following enhancements:
+> - **i18n** multilingual system (English / 繁體中文, runtime-switchable)
+> - **MVC refactor** — source split into `app/` package (Model / View / Controller)
+> - **PyQt6 migration** — fully ported from PyQt5
+> - **QThread background processing** — annotation lag eliminated
+> - **UI redesign** — Material-inspired light theme (QSS)
+> - **Folder browser dialog** — native OS dialog replaces manual path input
+> - **Unicode path fix** — images in directories with non-ASCII names now load correctly
 
-The presented crack annotation tool is designed to generate pixel-wise labeling of images of cracks in a semi-automatic manner. It also allows to draw bounding boxes around objects. Its main goal is to simplify the creation of a dataset to train deep learning algorithms for crack segmentation that is often done manually. The mathematical underpinning for the segmentation algorithm was developed by Remco Duits(https://www.win.tue.nl/~rduits/) and a group of mathematical image analysis at Eindhoven University of Technology.
+The presented crack annotation tool is designed to generate pixel-wise labeling of images of cracks in a semi-automatic manner. It also allows drawing bounding boxes around objects. Its main goal is to simplify the creation of a dataset to train deep learning algorithms for crack segmentation. The mathematical underpinning was developed by Remco Duits (https://www.win.tue.nl/~rduits/) and the mathematical image analysis group at Eindhoven University of Technology.
 
-The annotation can be made in one of two ways or both:
+Annotation can be made in one of two ways (or both):
 1. Bounding box annotation
-2. Crack Segmentation
+2. Crack segmentation
 
 The segmentation process consists of a few main steps:
 1. Manual selection of two crack end-points
 2. Finding a crack path between the selected points
-3. Finding of crack edges along the retrieved path
-4. Pixels between crack edges are marked as crack pixels.
-5. Optionally, the crack segment can be added by manually drawing the crack contour
+3. Finding crack edges along the retrieved path
+4. Pixels between crack edges are marked as crack pixels
+5. Optionally, a crack segment can be added by manually drawing the crack contour
 
+The algorithm is described in our paper:
 
-The description of the algorithm can be found in our paper:
+> [1] Kompanets, A., Duits, R., Leonetti, D., van den Berg, N., Snijder, H.H. (2024). *Segmentation Tool for Images of Cracks.* ICCCBE 2022, LNCE vol. 357. Springer. https://doi.org/10.1007/978-3-031-35399-4_8
 
-[1] Kompanets, A., Duits, R., Leonetti, D., van den Berg, N., Snijder, H.H. (2024). Segmentation Tool for Images of Cracks. In: Skatulla, S., Beushausen, H. (eds) Advances in Information Technology in Civil and Building Engineering. ICCCBE 2022. Lecture Notes in Civil Engineering, vol 357. Springer, Cham. https://doi.org/10.1007/978-3-031-35399-4_8
+Preprint: https://www.win.tue.nl/~rduits/CD.pdf
 
-Preprint also available at: https://www.win.tue.nl/~rduits/CD.pdf 
+---
 
-The tool can be used in two ways. 
- - As an app with a graphical user interface (see tutorial bellow)
- - As python functions (see file Examples.ipynb)
+## Project structure
 
-The app is designed to create annotation JSON files for images from a specified folder. "generate_mask_from_json.ipynb" file in this repository shows how to read annotations from the JSON files.
-If parameters are set properly, it should take less than a minute to segment a single crack on an image. If it takes longer, consider increasing the downsampling factor (see explanations below).
-## Specific dependencies
-- python 3.9.15 (Not tested on later versions)
-- agd
+```
+crack-segmentation-tool/
+├── crack_tool.py          # Entry point — run this to launch the app
+├── app/                   # MVC application source
+│   ├── controller.py      # Button handlers; owns QThread workers
+│   ├── model.py           # All persistent state + annotation I/O
+│   ├── view.py            # Display helpers, i18n, workflow button states
+│   ├── workers.py         # QThread workers (Boundary / OS / Cost / Track)
+│   ├── i18n.py            # Translation dictionaries + tr() / set_lang()
+│   ├── stylesheet.py      # Material-inspired QSS theme
+│   ├── layout.py          # Auto-generated PyQt6 UI definition
+│   └── app.ui             # Qt Designer source file
+├── cracktools/            # Core segmentation algorithm library
+├── notebooks/             # Jupyter notebooks
+│   ├── check annotation.ipynb
+│   ├── generate_mask_from_json.ipynb
+│   └── Segmentation.ipynb
+├── images/                # Background images used by the UI
+├── video/                 # Tutorial GIFs and videos
+├── README.MD
+└── README.zh-TW.md
+```
+
+---
+
+## Dependencies
+
+- Python **3.10+** (tested on 3.11)
+- PyQt6
+- agd 0.2.16+
 - hfm 0.2.13 (https://github.com/Mirebeau/HamiltonFastMarching)
+- numpy, opencv-python, scikit-image, matplotlib, plotly
 
-to install libraries:
+### Install with pip (recommended — use a virtual environment)
+
+```console
+pip install PyQt6 numpy opencv-python scikit-image matplotlib plotly
+pip install agd
+pip install hfm==0.2.13
+```
+
+### Install with conda (original method)
+
 ```console
 conda install agd
 conda install -c agd-lbr hfm=0.2.13
 ```
+
+---
+
+## Run the app
+
+```console
+python crack_tool.py
+```
+
+The language switcher (English / 繁體中文) is in the bottom-right of the status bar and takes effect immediately without restarting.
+
+---
+
 ## Cite
-If you use this code or the app in your own work please cite our paper:
 
-[1] Kompanets, A., Duits, R., Leonetti, D., van den Berg, N., Snijder, H.H. (2024). Segmentation Tool for Images of Cracks. In: Skatulla, S., Beushausen, H. (eds) Advances in Information Technology in Civil and Building Engineering. ICCCBE 2022. Lecture Notes in Civil Engineering, vol 357. Springer, Cham. https://doi.org/10.1007/978-3-031-35399-4_8
+If you use this code or app in your own work, please cite:
 
-# App tutorial
+> [1] Kompanets, A., Duits, R., Leonetti, D., van den Berg, N., Snijder, H.H. (2024). *Segmentation Tool for Images of Cracks.* ICCCBE 2022, LNCE vol. 357. Springer. https://doi.org/10.1007/978-3-031-35399-4_8
 
-#### Run the tool
-1. Clone the repository or download the archive and unzip it on your local machine. Run the crack_tool.py python script
+---
+
+# App Tutorial
 
 ## "Select Image" Tab
-#### Start annotation
-1. Enter the path to a folder that contains the images you want to segment. 
-2. Press "Select Folder"
 
-You will see a selectable list of images in the folder. If an annotation file for this image exists, the annotation will be displayed.
+#### Start annotation
+1. Click **Select Folder** to open a native folder browser and choose the directory that contains your images.
+2. A list of images in the folder will appear. If an annotation file for an image exists, the annotation is displayed automatically.
 
 ![](https://github.com/akomp22/crack-segmentation-tool/blob/main/video/gif/1.gif)
 
-#### Annotate bounding box (Optional)
-1. Select "Image size" parameter to adjust the size of a window for drawing
-2. Press the "Draw Box" button to open the window for drawing bounding boxes
-3. Draw a single bounding box
-    - Scroll mouse will Zoom in/out image
-    - Click the left mouse button to select the first corner of a bounding box
-    - Click the left mouse button once again to select the oposite corner of the bounding box
-    - Press the right mouse button to undo the previous selection
-    - Press Esc to escape the drawing window
-3. Select a positive integer in the "Class" window number to indicate the calls of the bounding box that was just drawn. (Note: in the app, the class 0 is shown to be for crack and class 1 for corrosion, however, you can choose any integer number for any annotated object)
-4. Press the "save Box" button to save the coordinates and class of the bounding box to the annotation file
-
-
-Now you can select another image to continue annotating the bounding box or go to the "Tracking" Tab to annotate the crack segmentation 
-
-5. To delete the bounding box from the annotation file press the "Clear Boxes" button
-6. To delete annotated segmentations from the annotation file press the "Clear segmentation" button
+#### Annotate bounding box (optional)
+1. Set **Image size** to adjust the drawing window size.
+2. Press **Draw Box** to open the drawing window.
+3. Draw a single bounding box:
+   - Mouse wheel to zoom in/out
+   - Left-click to select the first corner; left-click again for the opposite corner
+   - Right-click to undo the previous selection
+   - Esc to close the window
+4. Set the **Class** integer (0 = crack, 1 = corrosion, or any integer).
+5. Press **Save Box** to save to the annotation file.
+6. **Clear Boxes** removes all boxes; **Clear segmentation** removes all crack pixels.
 
 ![](https://github.com/akomp22/crack-segmentation-tool/blob/main/video/gif/2.gif)
 
+---
 
 ## "Tracking" Tab
+
 #### Select crack endpoints
-1. Press "Select Crack End-Points" to open the window for point selection. 
-2. Adjust "Image size" to fit the selection window to your screen. 
-3. Use the mouse wheel to zoom in/out around the current cursor position (to drag an image use sequentially zoom in/out and move the cursor).
-4. Press the left mouse button to select the point.
-5. Press the right mouse button to undo previous point selection
-6. Choose two points on the image (crack tips)
-7. Press ESC to end selection
+1. Press **Select Crack End-Points**.
+2. Adjust **Image size** to fit the window to your screen.
+3. Mouse wheel to zoom; left-click to select a point; right-click to undo.
+4. Select two points (crack tips), then press Esc.
 
 #### Crop image around crack
-1. Choose "Dark crack" if the crack is darker than the background and vice versa
-2. Only one color channel should be chosen for processing. Choose the one that gives the most of the contrast
-3. Downsampling reduces the image size to reduce processing time. Too course image also reduces tracking accuracy.
-4. X and Y margins determine the offset of the cropped image from the selected points. Choose it to fit crack into the cropped image and not to make the image size too big
-5. Indicetion of the coped image size below the "Update cropped image" button helps you to estimate processing time (having some experience with it)
+1. Choose **Dark crack** or **Bright crack** based on contrast.
+2. Pick the color channel with the most contrast.
+3. Set **Downsample factor** to reduce image size and speed up processing.
+4. Set **X / Y margins** to frame the crack comfortably.
+5. Press **Update cropped Image** — the LCD display below shows the cropped size.
 
-#### (Optional) Design wavelet to create orientation scores (modified version of the cropped image) and compare with crack
-1. A description of parameters and their influence on the cake wavelet can be found in [2](a reference to be added)
-2. Press "check cake wavelet" to display the wavelet
-3. Press "select the crack point to check width" to select a middle point of a crack with a representative crack width. Press "Update" to display cracked middle-point
-4. Compare cake wavelet and crack middlepoint. You want to design the wavelet so that the width of its bright middle region close to the width of a crack
+#### (Optional) Design wavelet
+1. Press **Check wavelet** to preview the cake wavelet.
+2. Press **Select crack point to check width** to pick a representative midpoint.
+3. Press **Update** to display the crack mid-point region.
+4. Tune wavelet parameters so its bright center matches the crack width.
 
-#### Create process and check orientation scores
-1. Press "update OS"
-2. Press "Update cost"
-3. Adjust cost parameters to get the best crack response on the projection displayed
+#### Create orientation scores and cost function
+1. Press **Update OS** (runs in background — progress bar fills when done).
+2. Press **Update Cost** (also background).
+3. Adjust cost parameters to maximize crack response in the projection.
 
 #### Crack track
-1. Press "crack track" to run the crack tracking algorithm
-2. Description of g11, g22 and g33 parameters are given in [1]
-3. "Track width" and "Track color" regulates only visualization of the track
-4. Press "Update track display"
-5. If you want to check the retrieved crack track you can use the "Track full screen" button
-Note: if crack edges have good visibility, the crack track can be made rough. You can always refine the crack track by decreasing the image crop downsample factor or other parameters
+1. Press **Crack Track** to run the tracking algorithm (background).
+2. Tune g11, g22, g33 (see [1] for description).
+3. Adjust **Track width** / **Track color** for visualization.
+4. Press **Update track display** or **Track full screen** to inspect results.
 
 ![](https://github.com/akomp22/crack-segmentation-tool/blob/main/video/gif/3.gif)
 
+---
+
 ## "Segmentation" Tab
 
-#### Crack edges retrieving
-1. Go to the Segmentation Tab
-2. Select filter size. The filter size defines how far from the retrieved crack track crack edges can be found  
-3. Press "Edge mask"
-4. Adjust the "mu", "l" and "p" parameters to get the best results
-5. Press the "Edge tracks" button
-6. To display the retrieved crack contours in full-screen mode press "Edge tracks full screen"
-
+#### Retrieve crack edges
+1. Set **filter size** (how far from the track edges can be found).
+2. Press **Edge mask**.
+3. Tune mu, l, p parameters.
+4. Press **Edge tracks**.
+5. Press **Edge tracks full screen** for a full-size preview.
 
 #### Save segment
-You can repeat these steps multiple times until you get the desired results. After that, you can press the "save segment" button to check the created segmentation mask. After you save a segment you can create another segment on the same image by repeating the described procedure. Alternatively, you can go to the "Add segment manually" tab, and save a segment created in this tab. After all crack segments are added to the segmentation mask, you can go to the "Save annotation tab" to check and save annotations. After pressing the "Save annotation" button, a file with the same name as the processed image and with JSON extension is created. This file contains a list of pixel positions that were inside saved segments. For instructions on how to read this file in your python code refer to the "check annotation.ipynb" file of this repository.
+Press **Save segment** to commit the current segmentation mask. You can repeat the process to add multiple segments to the same image. A JSON file is written alongside the image containing all pixel coordinates.
+
+For instructions on reading the JSON files, see `notebooks/generate_mask_from_json.ipynb`.
 
 ![](https://github.com/akomp22/crack-segmentation-tool/blob/main/video/gif/4.gif)
 
+---
+
 ## "Add segment manually" Tab
-#### Add segment manually.
-1. You can also create a crack segment manually by drawing crack contours. For this go to the "Add segment manually" tab and press "Draw segment"
-2. Use the mouse wheel to zoom in/out
-3. Crack contur consists of parts. Each time you press the left mouse button (LMB), part of the contour is started. Hold the left mouse button and move the cursor to draw a contour part. To fix the drawn part you can release the LMB. If you press LMB again it will start a new part of the contur, connecting the end of the previous part with the beginning of the new part by a straight line. 
-4. Press the right mouse button to erase the previous contour part.
-5. Press Esc to exit the drawing window. The end of the last contour part and the beginning of the first contour part will be connected by a straight line to close a contour.
+
+1. Press **Draw segment** to open the drawing window.
+2. Mouse wheel to zoom.
+3. Hold left-click and drag to draw a contour part; release to fix it. Click again to start a new part (connected by a straight line).
+4. Right-click to erase the previous part.
+5. Esc to close — the contour is closed automatically.
+6. Press **Save segment** to add it to the annotation mask.
 
 ![](https://github.com/akomp22/crack-segmentation-tool/blob/main/video/gif/5.gif)
-
-![](https://github.com/akomp22/crack-segmentation-tool/blob/main/screen-capture.webm)

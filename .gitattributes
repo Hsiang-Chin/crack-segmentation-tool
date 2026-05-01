@@ -1,2 +1,20 @@
 *.wbem filter=lfs diff=lfs merge=lfs -text
 .webm filter=lfs diff=lfs merge=lfs -text
+
+# 排除 Python 虛擬環境
+venv/
+.venv/
+env/
+
+# 排除編譯快取
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# 排除 IDE 設定 (選用)
+.vscode/
+.idea/
+
+# 排除作業系統暫存檔
+.DS_Store
+Thumbs.db
